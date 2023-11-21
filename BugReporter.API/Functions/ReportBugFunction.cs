@@ -25,12 +25,16 @@ public class ReportBugFunction {
 
     [FunctionName("ReportBugFunction")]
     public async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "bugs")] HttpRequest req
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "bugs")] ReportBugRequest request
     ) {
-        NewBug newBug = new("Very bad bug", "The div on the home page is not centered.");
+        NewBug newBug = new(request.Summary, request.Description);
 
         ReportedBug reportedBug = await _createGitHubIssueCommand.Execute(newBug);
-        
-        return new OkObjectResult(reportedBug);
+
+        return new OkObjectResult(
+            new ReportBugResponse() {
+                Id = reportedBug.Id, Summary = reportedBug.Summary, Description = reportedBug.Description
+            }
+        );
     }
 }
